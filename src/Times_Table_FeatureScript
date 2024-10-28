@@ -1,0 +1,58 @@
+FeatureScript 1777;
+import(path : "onshape/std/geometry.fs", version : "1777.0");
+
+annotation { "Feature Type Name" : "Times Table" }
+export const TimesTable = defineFeature(function(context is Context, id is Id, definition is map)
+    precondition
+    {
+        annotation { "Name" : "k" }
+        isInteger(definition.k, POSITIVE_COUNT_BOUNDS);
+        annotation { "Name" : "Times" }
+        isInteger(definition.Times, POSITIVE_COUNT_BOUNDS);
+
+        // Define the parameters of the feature type
+    }
+    {
+        var radius is number = 250;
+        var k = definition.k;
+        var Times = definition.Times;
+
+        var sketch1 = newSketch(context, id + "sketch1", {
+                "sketchPlane" : qCreatedBy(makeId("Top"), EntityType.FACE)
+            });
+        // Create sketch entities here
+        skCircle(sketch1, "circle1", {
+                    "center" : vector(0, 0) * millimeter,
+                    "radius" : radius * millimeter
+                });
+
+        skSolve(sketch1);
+
+        for (var i = 0; i < Times; i += 1)
+        {
+            opPoint(context, id + i + "point", {
+                        "point" : vector(radius * cos((i * 360 * degree) / Times), radius * sin((i * 360 * degree) / Times), 0) * millimeter
+                    });
+        }
+
+
+        for (var j = 1; j < Times; j += 1)
+        {
+            if (j != (j * k) % Times)
+            {
+                opFitSpline(context, id + "test" + j + "fitSpline", {
+                            "points" : [
+                                evVertexPoint(context, {
+                                        "vertex" : qCreatedBy(id + j + "point", EntityType.VERTEX) }),
+                                evVertexPoint(context, {
+                                        "vertex" : qCreatedBy(id + (j * k) % Times + "point", EntityType.VERTEX) })
+                            ]
+                        });
+            }
+
+        }
+
+
+
+    });
+
